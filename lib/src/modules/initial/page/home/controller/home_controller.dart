@@ -7,32 +7,31 @@ part 'home_controller.g.dart';
 class HomeController = _HomeControllerBase with _$HomeController;
 
 abstract class _HomeControllerBase with Store {
-final AddressService _service = AddressService();
+  final AddressService _service = AddressService();
 
-//estado 
-@observable
-AddressModel? address;
+  //estado
+  @observable
+  AddressModel? address;
 
-@observable
-bool isLoading = false;
+  @observable
+  bool isLoading = false;
 
-@observable 
-String error = '';
+  @observable
+  String error = '';
 
-//acao
-@action
-Future<void> fetchAddress(String cep) async {
-    try{
-        isLoading = true;
-        error = '';
+  //acao
+  @action
+  Future<void> fetchAddress(String cep) async {
+    try {
+      isLoading = true;
+      error = '';
 
-        address = await _service.getAddress(cep);
-
+      address = await _service.getAddress(cep);
     } catch (e) {
-    error = e.toString();
+      error = e.toString();
+      print(e);
     } finally {
-    isLoading = false;
+      isLoading = false;
     }
-    
-    }
+  }
 }

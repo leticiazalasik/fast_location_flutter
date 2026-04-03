@@ -6,7 +6,7 @@ class AddressService {
 final AddressRepository _addressRepository = AddressRepository();
 final LocalRepository _localRepository = LocalRepository();
 
-Future<AddressModel> getAddress(String cep) async {
+Future<AddressModel?> getAddress(String cep) async {
     final cleanCep = cep.replaceAll(RegExp(r'[^0-9]'), '');
 
     if (cleanCep.length !=8) {

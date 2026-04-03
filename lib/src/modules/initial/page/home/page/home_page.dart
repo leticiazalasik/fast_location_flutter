@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
 
   late ReactionDisposer _disposer;
 
-//estado inicial
+  //estado inicial
   @override
   void initState() {
     super.initState();
@@ -28,14 +28,14 @@ class _HomePageState extends State<HomePage> {
     //reacao de erro
     _disposer = reaction<String>((_) => controller.error, (error) {
       if (error.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error)));
       }
     });
   }
 
-//Quando a tela fecha
+  //Quando a tela fecha
   @override
   void dispose() {
     _disposer();
@@ -43,7 +43,7 @@ class _HomePageState extends State<HomePage> {
     super.dispose();
   }
 
-//A tela em si
+  //A tela em si
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,11 +62,18 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           //nova consulta
-          TextField(
-            controller: cepController,
-            onSubmitted: (value) {
-            controller.fetchAddress(value);
-            },
+          SizedBox(
+            width: 300,
+            child: TextField(
+              controller: cepController,
+              onSubmitted: (value) {
+                controller.fetchAddress(value);
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'Digite o CEP'
+              ),
+            ),
           ),
 
           //reatividade
@@ -83,9 +90,7 @@ class _HomePageState extends State<HomePage> {
 
                 return Column(
                   children: [
-                    LastAddressComponent(
-                      address: controller.address!,
-                    ),
+                    LastAddressComponent(address: controller.address!),
 
                     ElevatedButton(
                       onPressed: () {

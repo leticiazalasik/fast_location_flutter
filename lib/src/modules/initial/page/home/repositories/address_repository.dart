@@ -2,11 +2,15 @@ import '../../../../../http/dio_client.dart';
 import '../model/address_model.dart';
 
 class AddressRepository {
+  Future<AddressModel?> getAddress(String cep) async {
+    try {
+      final response = await DioClient.dio.get('$cep/json/');
 
-    Future <AddressModel> getAddress(String cep) async {
-        final response = await DioClient.dio.get('$cep/json/');
+      if (!response.data || response.data['erro']) {
+        return null;
+      }
 
-        return AddressModel(
+      return AddressModel(
         cep: response.data['cep'],
         logradouro: response.data['logradouro'],
         complemento: response.data['complemento'] ?? '',
@@ -19,7 +23,9 @@ class AddressRepository {
         gia: response.data['gia'],
         ddd: response.data['ddd'],
         siafi: response.data['siafi'],
-    );
+      );
+    } catch (e) {
+      throw Exception('Falha ao buscar CEP');
+    }
   }
 }
-  
