@@ -13,13 +13,13 @@ mixin _$HistoryController on _HistoryControllerBase, Store {
       Atom(name: '_HistoryControllerBase.addresses', context: context);
 
   @override
-  List<AddressModel> get addresses {
+  ObservableList<AddressModel> get addresses {
     _$addressesAtom.reportRead();
     return super.addresses;
   }
 
   @override
-  set addresses(List<AddressModel> value) {
+  set addresses(ObservableList<AddressModel> value) {
     _$addressesAtom.reportWrite(value, super.addresses, () {
       super.addresses = value;
     });

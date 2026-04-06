@@ -7,32 +7,42 @@ part 'history_controller.g.dart';
 class HistoryController = _HistoryControllerBase with _$HistoryController;
 
 abstract class _HistoryControllerBase with Store {
-    final LocalRepository _localRepository = LocalRepository();
+  final LocalRepository _localRepository = LocalRepository();
 
-    @observable
-    List<AddressModel> addresses = [];
+  @observable
+  ObservableList<AddressModel> addresses = ObservableList<AddressModel>();
 
-    @action
-    Future<void> loadAddresses()async {
-final data = await _localRepository.getAddress();
+  @action
+  Future<void> loadAddresses() async {
+    final data = await _localRepository.getAllAddresses();
+    addresses.clear();
 
-if (data != null){
-   addresses = [
-  AddressModel(
-          cep: data['cep'],
-          logradouro: data['logradouro'],
-          complemento: '',
-          bairro: data['bairro'],
-          localidade: '',
-          uf: '',
-          estado: '',
-          regiao: '',
-          ibge: '',
-          gia: '',
-          ddd: '',
-          siafi: '',
+    final list = data
+        .map(
+          (item) => AddressModel(
+            cep: item['cep'] ?? '',
+            logradouro: item['logradouro'] ?? '',
+            localidade: item['localidade'] ?? '',
+            uf: item['uf'] ?? '',
+            bairro: item['bairro'] ?? '',
+            complemento: item['complemento'] ?? '',
+            estado: '',
+            regiao: '',
+            ibge: '',
+            gia: '',
+            ddd: '',
+            siafi: '',
+          ),
         )
-      ];
-    }
+        .toList();
+
+    addresses.addAll(list);
+  }
+
+  @action
+  Future<void> clearAll() async {
+    await _localRepository.clearHistory();
+    addresses
+        .clear(); // Limpa a lista na memória (MobX cuidará da atualização da UI)
   }
 }
