@@ -1,3 +1,4 @@
+import 'package:fast_location/src/modules/initial/page/initial_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'src/routes/app_routes.dart';
@@ -17,9 +18,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      initialRoute: AppRoutes.home,
+      initialRoute: '/',
       routes: {
-        AppRoutes.home: (_) => HomePage(),
+        '/': (_) => const InitialPage(),
+        AppRoutes.home: (_) => const HomePage(),
         AppRoutes.history: (_) => const HistoryPage(),
       },
     );

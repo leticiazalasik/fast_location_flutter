@@ -1,3 +1,5 @@
+import 'package:fast_location/src/routes/app_routes.dart';
+import 'package:fast_location/src/shared/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
@@ -55,6 +57,7 @@ class _HomePageState extends State<HomePage> {
             icon: const Icon(Icons.history),
             onPressed: () {
               // acao de histórico
+              Navigator.pushNamed(context, AppRoutes.history);
             },
           ),
         ],
@@ -71,7 +74,7 @@ class _HomePageState extends State<HomePage> {
               },
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Digite o CEP'
+                labelText: 'Digite o CEP',
               ),
             ),
           ),
@@ -81,7 +84,16 @@ class _HomePageState extends State<HomePage> {
             child: Observer(
               builder: (_) {
                 if (controller.isLoading) {
-                  return const CircularProgressIndicator();
+                  return const Center(
+                    child: SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth:3,
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary), // Ajusta a espessura da linha se desejar
+                      ),
+                    ),
+                  );
                 }
 
                 if (controller.address == null) {
