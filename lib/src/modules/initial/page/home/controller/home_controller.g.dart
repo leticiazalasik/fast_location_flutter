@@ -61,8 +61,10 @@ mixin _$HomeController on _HomeControllerBase, Store {
       AsyncAction('_HomeControllerBase.fetchAddress', context: context);
 
   @override
-  Future<void> fetchAddress(String cep) {
-    return _$fetchAddressAsyncAction.run(() => super.fetchAddress(cep));
+  Future<void> fetchAddress(String cep,
+      {required TextEditingController inputController}) {
+    return _$fetchAddressAsyncAction
+        .run(() => super.fetchAddress(cep, inputController: inputController));
   }
 
   @override

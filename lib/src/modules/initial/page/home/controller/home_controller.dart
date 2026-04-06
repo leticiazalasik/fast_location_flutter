@@ -1,4 +1,5 @@
 import 'package:mobx/mobx.dart';
+import 'package:flutter/material.dart';
 import '../model/address_model.dart';
 import '../service/address_service.dart';
 
@@ -21,15 +22,25 @@ abstract class _HomeControllerBase with Store {
 
   //acao
   @action
-  Future<void> fetchAddress(String cep) async {
+  Future<void> fetchAddress(
+    String cep, {
+    required TextEditingController inputController,
+  }) async {
     try {
       isLoading = true;
       error = '';
+      address = null;
 
-      address = await _service.getAddress(cep);
+      final result = await _service.getAddress(cep);
+
+      if (result != null) {
+        address = result;
+        inputController.clear();
+      } else {
+        error = 'CEP não encontrado';
+      }
     } catch (e) {
-      error = e.toString();
-      print(e);
+      error = "Erro ao buscar CEP";
     } finally {
       isLoading = false;
     }
