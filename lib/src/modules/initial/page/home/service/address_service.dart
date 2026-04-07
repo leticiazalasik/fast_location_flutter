@@ -21,4 +21,19 @@ Future<AddressModel?> getAddress(String cep) async {
     return address; 
 }
 
+Future<List<AddressModel>> searchAddress({
+    required String uf, 
+    required String cidade, 
+    String? logradouro,
+}) async {
+    if (uf.isEmpty || cidade.isEmpty){
+        throw Exception('UF e cidade são obrigatórios');
+    }
+    final result = await _addressRepository.searchAddress(
+        uf: uf,
+        cidade: cidade, 
+        logradouro: logradouro ?? '',
+    );
+    return result;
+}
 }

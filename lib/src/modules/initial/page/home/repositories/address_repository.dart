@@ -28,4 +28,48 @@ class AddressRepository {
       throw Exception('Falha ao buscar CEP');
     }
   }
+
+  //Método que busca cep por endereço 
+  Future<List<AddressModel>> searchAddress({
+    required String uf, 
+    required String cidade, 
+    String? logradouro, 
+      }) async {
+        try{
+          final encodedCidade = Uri.encodeComponent(cidade);
+          final encodedLogradouro = Uri.encodeComponent(logradouro ?? '');
+          final response = await DioClient.dio.get(
+          '$uf/$encodedCidade/${encodedLogradouro.isEmpty ? '' : encodedLogradouro}/json/'
+          );
+             if (response.data == null || response.data is! List) {
+        return [];
+      }
+
+
+      final dataList = response.data as List;
+
+      if (dataList.isEmpty) {
+        return [];
+      }
+
+      return dataList.map((item) {
+        return AddressModel(
+            cep:item['cep'],
+            logradouro: item['logradouro'],
+                complemento: item['complemento'] ?? '',
+                bairro: item['bairro'],
+                localidade: item['localidade'],
+                uf: item['uf'],
+                estado: item['estado'],
+                regiao: item['regiao'],
+                ibge: item['ibge'],
+                gia: item['gia'],
+                ddd: item['ddd'],
+                siafi: item['siafi'],
+         );
+      }).toList();
+    } catch (e) {
+      throw Exception('Falha ao buscar endereço');
+    }
+  }
 }

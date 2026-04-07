@@ -20,6 +20,9 @@ abstract class _HomeControllerBase with Store {
   @observable
   String error = '';
 
+  @observable
+ObservableList<AddressModel> addressList = ObservableList<AddressModel>();
+
   //acao
   @action
   Future<void> fetchAddress(
@@ -45,4 +48,41 @@ abstract class _HomeControllerBase with Store {
       isLoading = false;
     }
   }
+
+
+  //action para busca de cep 
+ @action
+ Future<void> searchAddress({
+  required String uf,
+  required String cidade,
+  String? logradouro,
+  }) async {
+    try {
+      if (uf.trim().isEmpty || cidade.trim().isEmpty) {
+      error = 'UF e cidade são obrigatórios';
+      return;
+      }
+
+    isLoading = true;
+    error = '';
+    address = null;
+    addressList.clear();
+
+    final result = await _service.searchAddress(
+      uf: uf.trim(),
+      cidade: cidade.trim(),
+      logradouro: logradouro?.trim(),
+    );
+
+    if (result.isNotEmpty) {
+      addressList.addAll(result);
+    } else {
+      error = 'Nenhum endereço encontrado';
+    }
+  } catch (e) {
+    error = 'Erro ao buscar endereço';
+  } finally {
+    isLoading = false;
+  }
+}
 }
