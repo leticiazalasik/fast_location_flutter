@@ -36,4 +36,8 @@ Future<List<AddressModel>> searchAddress({
     );
     return result;
 }
+
+Future<void> saveAddress(AddressModel? address) async {
+    await _localRepository.saveAddress(address);
+}
 }

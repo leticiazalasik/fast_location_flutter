@@ -85,4 +85,11 @@ ObservableList<AddressModel> addressList = ObservableList<AddressModel>();
     isLoading = false;
   }
 }
+
+ @action
+ Future<void> selectAddress(AddressModel item) async {
+  address = item;
+  addressList.clear();
+  await _service.saveAddress(item);
+ }
 }

@@ -177,9 +177,8 @@ if (controller.addressList.isNotEmpty) {
         title: Text(item.logradouro),
         subtitle: Text("${item.localidade} - ${item.uf}"),
         trailing: Text(item.cep),
-        onTap: () {
-          controller.address = item;
-          controller.addressList.clear();
+        onTap: () async {
+          await controller.selectAddress(item);
         },
       );
     },
