@@ -5,7 +5,8 @@ class AddressRepository {
   Future<AddressModel?> getAddress(String cep) async {
     try {
       final response = await DioClient.dio.get('$cep/json/');
-      if (response.data == null || response.data['erro']==true) {
+
+      if (response.data == null || response.data['erro'] == true) {
         return null;
       }
 

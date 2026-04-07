@@ -3,6 +3,7 @@ import 'package:fast_location/src/shared/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:mobx/mobx.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../controller/home_controller.dart';
 import '../components/empty_search_component.dart';
@@ -27,6 +28,10 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
 
+    // Garante que toda vez que a tela abrir, ela comece do zero
+    controller.address = null;
+    controller.error = '';
+
     //reacao de erro
     _disposer = reaction<String>((_) => controller.error, (error) {
       if (error.isNotEmpty) {
@@ -50,7 +55,16 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home'),
+        title: InkWell(
+          onTap: () {
+            setState(() {
+              controller.address = null;
+              controller.error = '';
+              cepController.clear();
+            });
+          },
+          child: const Text('Home'),
+        ),
         actions: [
           //histórico
           IconButton(
@@ -70,7 +84,7 @@ class _HomePageState extends State<HomePage> {
             child: TextField(
               controller: cepController,
               onSubmitted: (value) {
-                controller.fetchAddress(value);
+                controller.fetchAddress(value, inputController: cepController);
               },
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
@@ -83,30 +97,56 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Observer(
               builder: (_) {
+                // 1. Loading "Bonito" e Centralizado
                 if (controller.isLoading) {
                   return const Center(
                     child: SizedBox(
                       width: 40,
                       height: 40,
                       child: CircularProgressIndicator(
-                        strokeWidth:3,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary), // Ajusta a espessura da linha se desejar
+                        strokeWidth: 3,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          AppColors.primary,
+                        ), // Ajusta a espessura da linha se desejar
                       ),
                     ),
                   );
                 }
 
+                // 2. Estado Vazio
                 if (controller.address == null) {
                   return const EmptySearchComponent();
                 }
 
+                // 3. Resultado com o Botão Verde e Funcional
                 return Column(
                   children: [
                     LastAddressComponent(address: controller.address!),
+                    const SizedBox(
+                      height: 20,
+                    ), // Espaçamento entre o endereço e o botão
 
                     ElevatedButton(
-                      onPressed: () {
-                        // ação de rota
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            AppColors.secondary, // Verde da Letícia
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        // AÇÃO DE ROTA
+                        final address = controller.address!;
+                        final destination = Uri.encodeComponent(
+                          "${address.logradouro}, ${address.localidade} - ${address.uf}",
+                        );
+                        final url =
+                            "https://www.google.com/maps/search/?api=1&query=$destination";
+
+                        if (await canLaunchUrl(Uri.parse(url))) {
+                          await launchUrl(
+                            Uri.parse(url),
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
                       },
                       child: const Text('Traçar rota'),
                     ),

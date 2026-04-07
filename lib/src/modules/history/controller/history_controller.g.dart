@@ -33,6 +33,14 @@ mixin _$HistoryController on _HistoryControllerBase, Store {
     return _$loadAddressesAsyncAction.run(() => super.loadAddresses());
   }
 
+  late final _$clearAllAsyncAction =
+      AsyncAction('_HistoryControllerBase.clearAll', context: context);
+
+  @override
+  Future<void> clearAll() {
+    return _$clearAllAsyncAction.run(() => super.clearAll());
+  }
+
   @override
   String toString() {
     return '''
