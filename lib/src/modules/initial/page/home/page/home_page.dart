@@ -30,7 +30,8 @@ class _HomePageState extends State<HomePage> {
 
     // Garante que toda vez que a tela abrir, ela comece do zero
     controller.address = null;
-    controller.error = '';
+    
+    controller.addressList.clear();
 
     //reacao de erro
     _disposer = reaction<String>((_) => controller.error, (error) {
@@ -61,6 +62,7 @@ class _HomePageState extends State<HomePage> {
               controller.address = null;
               controller.error = '';
               cepController.clear();
+              controller.addressList.clear();
             });
           },
           child: const Text('Home'),
@@ -84,11 +86,59 @@ class _HomePageState extends State<HomePage> {
             child: TextField(
               controller: cepController,
               onSubmitted: (value) {
-                controller.fetchAddress(value, inputController: cepController);
+                final cleanValue = value.replaceAll(RegExp(r'[^0-9]'), '');
+                if (cleanValue.length == 8) {
+                  controller.fetchAddress(value, inputController: cepController);
+                  return;
+                }
+
+                final normalized = value
+                    .replaceAll(RegExp(r'\\s*[-;]\\s*'), ';')
+                    .replaceAll(RegExp(r'\\s+'), ' ')
+                    .trim();
+                List<String> parts = normalized
+                    .split(';')
+                    .map((e) => e.trim())
+                    .where((e) => e.isNotEmpty)
+                    .toList();
+                if (parts.length < 2 && normalized.isNotEmpty) {
+                  final tokens = normalized
+                      .split(' ')
+                      .map((e) => e.trim())
+                      .where((e) => e.isNotEmpty)
+                      .toList();
+                  if (tokens.length >= 2) {
+                    parts = [
+                      tokens[0],
+                      tokens[1],
+                      if (tokens.length > 2)
+                        tokens.sublist(2).join(' '),
+                    ];
+                  }
+                }
+
+                if (parts.length < 2) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Use: UF;Cidade;Logradouro'),
+                    ),
+                  );
+                  return;
+                }
+
+                final uf = parts[0].toUpperCase();
+                final cidade = parts[1];
+                final logradouro = parts.length >= 3 ? parts[2] : '';
+
+                controller.searchAddress(
+                  uf: uf,
+                  cidade: cidade,
+                  logradouro: logradouro,
+                );
               },
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Digite o CEP',
+                labelText: 'CEP ou endereço: UF;Cidade;Logradouro',
               ),
             ),
           ),
@@ -97,7 +147,6 @@ class _HomePageState extends State<HomePage> {
           Expanded(
             child: Observer(
               builder: (_) {
-                // 1. Loading "Bonito" e Centralizado
                 if (controller.isLoading) {
                   return const Center(
                     child: SizedBox(
@@ -107,16 +156,35 @@ class _HomePageState extends State<HomePage> {
                         strokeWidth: 3,
                         valueColor: AlwaysStoppedAnimation<Color>(
                           AppColors.primary,
-                        ), // Ajusta a espessura da linha se desejar
+                        ), 
                       ),
                     ),
                   );
                 }
 
                 // 2. Estado Vazio
-                if (controller.address == null) {
+if (controller.address == null && controller.addressList.isEmpty) {
                   return const EmptySearchComponent();
                 }
+
+if (controller.addressList.isNotEmpty) {
+  return ListView.builder(
+    itemCount: controller.addressList.length,
+    itemBuilder: (_, index) {
+      final item = controller.addressList[index];
+
+      return ListTile(
+        title: Text(item.logradouro),
+        subtitle: Text("${item.localidade} - ${item.uf}"),
+        trailing: Text(item.cep),
+        onTap: () {
+          controller.address = item;
+          controller.addressList.clear();
+        },
+      );
+    },
+  );
+}
 
                 // 3. Resultado com o Botão Verde e Funcional
                 return Column(
@@ -133,13 +201,12 @@ class _HomePageState extends State<HomePage> {
                         foregroundColor: Colors.white,
                       ),
                       onPressed: () async {
-                        // AÇÃO DE ROTA
                         final address = controller.address!;
                         final destination = Uri.encodeComponent(
                           "${address.logradouro}, ${address.localidade} - ${address.uf}",
                         );
                         final url =
-                            "https://www.google.com/maps/search/?api=1&query=$destination";
+                            "https://www.google.com/maps/dir/?api=1&destination=$destination";
 
                         if (await canLaunchUrl(Uri.parse(url))) {
                           await launchUrl(
@@ -160,3 +227,5 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+
+
