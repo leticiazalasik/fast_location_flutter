@@ -7,7 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../controller/home_controller.dart';
 import '../components/empty_search_component.dart';
-import '../components/last_address_component.dart';
+import '../components/address_component.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -20,6 +20,9 @@ class _HomePageState extends State<HomePage> {
   //variáveis de estado da tela
   final HomeController controller = HomeController();
   final TextEditingController cepController = TextEditingController();
+  final TextEditingController ufController = TextEditingController();
+  final TextEditingController cidadeController = TextEditingController();
+  final TextEditingController logradouroController = TextEditingController();
 
   late ReactionDisposer _disposer;
 
@@ -30,8 +33,6 @@ class _HomePageState extends State<HomePage> {
 
     // Garante que toda vez que a tela abrir, ela comece do zero
     controller.address = null;
-    
-    controller.addressList.clear();
 
     //reacao de erro
     _disposer = reaction<String>((_) => controller.error, (error) {
@@ -54,178 +55,210 @@ class _HomePageState extends State<HomePage> {
   //A tela em si
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: InkWell(
-          onTap: () {
-            setState(() {
-              controller.address = null;
-              controller.error = '';
-              cepController.clear();
-              controller.addressList.clear();
-            });
-          },
-          child: const Text('Home'),
-        ),
-        actions: [
-          //histórico
-          IconButton(
-            icon: const Icon(Icons.history),
-            onPressed: () {
-              // acao de histórico
-              Navigator.pushNamed(context, AppRoutes.history);
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: InkWell(
+            onTap: () {
+              setState(() {
+                controller.address = null;
+                controller.error = '';
+                cepController.clear();
+              });
             },
+            child: const Text('Home'),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          //nova consulta
-          SizedBox(
-            width: 300,
-            child: TextField(
-              controller: cepController,
-              onSubmitted: (value) {
-                final cleanValue = value.replaceAll(RegExp(r'[^0-9]'), '');
-                if (cleanValue.length == 8) {
-                  controller.fetchAddress(value, inputController: cepController);
-                  return;
-                }
-
-                final normalized = value
-                    .replaceAll(RegExp(r'\\s*[-;]\\s*'), ';')
-                    .replaceAll(RegExp(r'\\s+'), ' ')
-                    .trim();
-                List<String> parts = normalized
-                    .split(';')
-                    .map((e) => e.trim())
-                    .where((e) => e.isNotEmpty)
-                    .toList();
-                if (parts.length < 2 && normalized.isNotEmpty) {
-                  final tokens = normalized
-                      .split(' ')
-                      .map((e) => e.trim())
-                      .where((e) => e.isNotEmpty)
-                      .toList();
-                  if (tokens.length >= 2) {
-                    parts = [
-                      tokens[0],
-                      tokens[1],
-                      if (tokens.length > 2)
-                        tokens.sublist(2).join(' '),
-                    ];
-                  }
-                }
-
-                if (parts.length < 2) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Use: UF;Cidade;Logradouro'),
-                    ),
-                  );
-                  return;
-                }
-
-                final uf = parts[0].toUpperCase();
-                final cidade = parts[1];
-                final logradouro = parts.length >= 3 ? parts[2] : '';
-
-                controller.searchAddress(
-                  uf: uf,
-                  cidade: cidade,
-                  logradouro: logradouro,
-                );
+          actions: [
+            //histórico
+            IconButton(
+              icon: const Icon(Icons.history),
+              onPressed: () {
+                // acao de histórico
+                Navigator.pushNamed(context, AppRoutes.history);
               },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'CEP ou endereço: UF;Cidade;Logradouro',
+            ),
+          ],
+          bottom: TabBar(
+            tabs: [
+              Tab(text: "Pesquisar com CEP"),
+              Tab(text: "Pesquisar com Endereço"),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            // No build da HomePage
+            SizedBox(
+              height: 250, // Altura fixa para os formulários
+              child: TabBarView(
+                children: [
+                  // ABA 1: CEP
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller: cepController,
+                          decoration: const InputDecoration(
+                            labelText: 'Digite o CEP',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () => _buscarPorCep(cepController.text),
+                          child: const Text("Pesquisar CEP"),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // ABA 2: Endereço (3 Campos)
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextField(
+                          controller:
+                              logradouroController, // Crie este controller no initState
+                          decoration: const InputDecoration(
+                            labelText: 'Logradouro',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller:
+                                    ufController, // Crie este controller
+                                decoration: const InputDecoration(
+                                  labelText: 'UF',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: TextField(
+                                controller:
+                                    cidadeController, // Crie este controller
+                                decoration: const InputDecoration(
+                                  labelText: 'Cidade',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: _buscarPorEndereco,
+                          child: const Text("Pesquisar Endereço"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
 
-          //reatividade
-          Expanded(
-            child: Observer(
-              builder: (_) {
-                if (controller.isLoading) {
-                  return const Center(
-                    child: SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          AppColors.primary,
-                        ), 
+            Expanded(
+              child: Observer(
+                builder: (_) {
+                  if (controller.isLoading) {
+                    return const Center(
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 3,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.primary,
+                          ),
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }
 
-                // 2. Estado Vazio
-if (controller.address == null && controller.addressList.isEmpty) {
-                  return const EmptySearchComponent();
-                }
+                  // 2. Estado Vazio
+                  if (controller.address == null) {
+                    return const EmptySearchComponent();
+                  } else {
+                    return Column(
+                      children: [
+                        AddressComponent(address: controller.address!),
+                        const SizedBox(
+                          height: 20,
+                        ), // Espaçamento entre o endereço e o botão
 
-if (controller.addressList.isNotEmpty) {
-  return ListView.builder(
-    itemCount: controller.addressList.length,
-    itemBuilder: (_, index) {
-      final item = controller.addressList[index];
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                                AppColors.secondary, // Verde da Letícia
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: () async {
+                            final address = controller.address!;
+                            final destination = Uri.encodeComponent(
+                              "${address.logradouro}, ${address.localidade} - ${address.uf}",
+                            );
+                            final url =
+                                "https://www.google.com/maps/dir/?api=1&destination=$destination";
 
-      return ListTile(
-        title: Text(item.logradouro),
-        subtitle: Text("${item.localidade} - ${item.uf}"),
-        trailing: Text(item.cep),
-        onTap: () {
-          controller.address = item;
-          controller.addressList.clear();
-        },
-      );
-    },
-  );
-}
+                            if (await canLaunchUrl(Uri.parse(url))) {
+                              await launchUrl(
+                                Uri.parse(url),
+                                mode: LaunchMode.externalApplication,
+                              );
+                            }
+                          },
+                          child: const Text('Traçar rota'),
+                        ),
+                      ],
+                    );
+                  }
 
-                // 3. Resultado com o Botão Verde e Funcional
-                return Column(
-                  children: [
-                    LastAddressComponent(address: controller.address!),
-                    const SizedBox(
-                      height: 20,
-                    ), // Espaçamento entre o endereço e o botão
-
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            AppColors.secondary, // Verde da Letícia
-                        foregroundColor: Colors.white,
-                      ),
-                      onPressed: () async {
-                        final address = controller.address!;
-                        final destination = Uri.encodeComponent(
-                          "${address.logradouro}, ${address.localidade} - ${address.uf}",
-                        );
-                        final url =
-                            "https://www.google.com/maps/dir/?api=1&destination=$destination";
-
-                        if (await canLaunchUrl(Uri.parse(url))) {
-                          await launchUrl(
-                            Uri.parse(url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                        }
-                      },
-                      child: const Text('Traçar rota'),
-                    ),
-                  ],
-                );
-              },
+                  // 3. Resultado com o Botão Verde e Funcional
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+
+  void _buscarPorCep(String value) {
+    final cleanValue = value.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanValue.length == 8) {
+      controller.fetchAddress(
+        cleanValue,
+        inputController: cepController,
+      ); // Busca direta por CEP
+    } else {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('CEP deve ter 8 dígitos')));
+    }
+  }
+
+  void _buscarPorEndereco() {
+    final uf = ufController.text.trim().toUpperCase();
+    final cidade = cidadeController.text.trim();
+    final logradouro = logradouroController.text.trim();
+
+    if (uf.length == 2 && cidade.length >= 3 && logradouro.length >= 3) {
+      controller.searchAddress(uf: uf, cidade: cidade, logradouro: logradouro);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Preencha os campos corretamente (UF com 2 letras, Cidade/Rua com +3)',
+          ),
+        ),
+      );
+    }
+  }
 }
-
-
