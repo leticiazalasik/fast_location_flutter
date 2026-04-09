@@ -29,45 +29,44 @@ class AddressRepository {
     }
   }
 
-  //Método que busca cep por endereço 
-  Future<List<AddressModel>> searchAddress({
-    required String uf, 
-    required String cidade, 
-    String? logradouro, 
-      }) async {
-        try{
-          final encodedCidade = Uri.encodeComponent(cidade);
-          final encodedLogradouro = Uri.encodeComponent(logradouro ?? '');
-          final response = await DioClient.dio.get(
-          '$uf/$encodedCidade/${encodedLogradouro.isEmpty ? '' : encodedLogradouro}/json/'
-          );
-             if (response.data == null || response.data is! List) {
-        return [];
+  //Método que busca cep por endereço
+  Future<AddressModel?> searchAddress({
+    required String uf,
+    required String cidade,
+    String? logradouro,
+  }) async {
+    try {
+      final encodedCidade = Uri.encodeComponent(cidade);
+      final encodedLogradouro = Uri.encodeComponent(logradouro ?? '');
+
+      final uri = '$uf/$encodedCidade/${encodedLogradouro.isEmpty ? '' : encodedLogradouro}/json/';
+      print(uri);
+      final response = await DioClient.dio.get(uri);
+
+
+
+      if (response.data == null || response.data is! List) {
+        return null;
       }
 
+      final address = response.data[0];
 
-      final dataList = response.data as List;
+      print(address);
 
-      if (dataList.isEmpty) {
-        return [];
-      }
-
-      return dataList.map((item) {
-        return AddressModel(
-            cep:item['cep'],
-            logradouro: item['logradouro'],
-                complemento: item['complemento'] ?? '',
-                bairro: item['bairro'],
-                localidade: item['localidade'],
-                uf: item['uf'],
-                estado: item['estado'],
-                regiao: item['regiao'],
-                ibge: item['ibge'],
-                gia: item['gia'],
-                ddd: item['ddd'],
-                siafi: item['siafi'],
-         );
-      }).toList();
+      return AddressModel(
+        cep: address['cep'],
+        logradouro: address['logradouro'],
+        complemento: address['complemento'] ?? '',
+        bairro: address['bairro'],
+        localidade: address['localidade'],
+        uf: address['uf'],
+        estado: address['estado'],
+        regiao: address['regiao'],
+        ibge: address['ibge'],
+        gia: address['gia'],
+        ddd: address['ddd'],
+        siafi: address['siafi'],
+      );
     } catch (e) {
       throw Exception('Falha ao buscar endereço');
     }
