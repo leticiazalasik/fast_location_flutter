@@ -57,22 +57,6 @@ mixin _$HomeController on _HomeControllerBase, Store {
     });
   }
 
-  late final _$addressListAtom =
-      Atom(name: '_HomeControllerBase.addressList', context: context);
-
-  @override
-  ObservableList<AddressModel> get addressList {
-    _$addressListAtom.reportRead();
-    return super.addressList;
-  }
-
-  @override
-  set addressList(ObservableList<AddressModel> value) {
-    _$addressListAtom.reportWrite(value, super.addressList, () {
-      super.addressList = value;
-    });
-  }
-
   late final _$fetchAddressAsyncAction =
       AsyncAction('_HomeControllerBase.fetchAddress', context: context);
 
@@ -98,8 +82,7 @@ mixin _$HomeController on _HomeControllerBase, Store {
     return '''
 address: ${address},
 isLoading: ${isLoading},
-error: ${error},
-addressList: ${addressList}
+error: ${error}
     ''';
   }
 }

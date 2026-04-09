@@ -20,9 +20,6 @@ abstract class _HomeControllerBase with Store {
   @observable
   String error = '';
 
-  @observable
-ObservableList<AddressModel> addressList = ObservableList<AddressModel>();
-
   //acao
   @action
   Future<void> fetchAddress(
@@ -66,16 +63,15 @@ ObservableList<AddressModel> addressList = ObservableList<AddressModel>();
     isLoading = true;
     error = '';
     address = null;
-    addressList.clear();
 
     final result = await _service.searchAddress(
       uf: uf.trim(),
       cidade: cidade.trim(),
       logradouro: logradouro?.trim(),
     );
-
-    if (result.isNotEmpty) {
-      addressList.addAll(result);
+    print(result);
+    if (result != null) {
+      address = result;
     } else {
       error = 'Nenhum endereço encontrado';
     }
