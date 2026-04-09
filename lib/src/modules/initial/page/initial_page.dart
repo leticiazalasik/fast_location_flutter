@@ -30,6 +30,7 @@ class _InitialPageState extends State<InitialPage>
             _controller.forward();
 
             Future.delayed(const Duration(seconds:3), () {
+              if(!mounted) return;
                 Navigator.pushReplacementNamed( context, AppRoutes.home);
             });
         }

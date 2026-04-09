@@ -40,7 +40,6 @@ class AddressRepository {
       final encodedLogradouro = Uri.encodeComponent(logradouro ?? '');
 
       final uri = '$uf/$encodedCidade/${encodedLogradouro.isEmpty ? '' : encodedLogradouro}/json/';
-      print(uri);
       final response = await DioClient.dio.get(uri);
 
 
@@ -50,8 +49,6 @@ class AddressRepository {
       }
 
       final address = response.data[0];
-
-      print(address);
 
       return AddressModel(
         cep: address['cep'],
