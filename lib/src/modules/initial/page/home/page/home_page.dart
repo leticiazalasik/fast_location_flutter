@@ -2,6 +2,8 @@ import 'package:fast_location/src/routes/app_routes.dart';
 import 'package:fast_location/src/shared/colors/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:mobx/mobx.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -199,21 +201,7 @@ class _HomePageState extends State<HomePage> {
                                 AppColors.secondary, // Verde da Letícia
                             foregroundColor: Colors.white,
                           ),
-                          onPressed: () async {
-                            final address = controller.address!;
-                            final destination = Uri.encodeComponent(
-                              "${address.logradouro}, ${address.localidade} - ${address.uf}",
-                            );
-                            final url =
-                                "https://www.google.com/maps/dir/?api=1&destination=$destination";
-
-                            if (await canLaunchUrl(Uri.parse(url))) {
-                              await launchUrl(
-                                Uri.parse(url),
-                                mode: LaunchMode.externalApplication,
-                              );
-                            }
-                          },
+                          onPressed: _abrirRota,
                           child: const Text('Traçar rota'),
                         ),
                       ],
@@ -260,5 +248,50 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
+  }
+
+  Future<void> _abrirRota() async {
+    final address = controller.address!;
+  final destinationAddress = "${address.logradouro}, ${address.localidade} - ${address.uf}";
+
+  try {
+    // 1. Validar e solicitar permissão de GPS
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    // 2. Pegar localização atual (Origem)
+    Position currentPosition = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high
+    );
+
+    // 3. Converter endereço pesquisado em coordenadas (Destino)
+    List<Location> locations = await locationFromAddress(destinationAddress);
+    if (locations.isEmpty) throw 'Endereço não encontrado';
+    
+    Location dest = locations.first;
+
+    // 4. Montar URL para o Navegador com Origem e Destino
+    // saddr = source address (origem) | daddr = destination address (destino)
+    final String url = "https://www.google.com/maps/dir/?api=1"
+        "&origin=${currentPosition.latitude},${currentPosition.longitude}"
+        "&destination=${dest.latitude},${dest.longitude}"
+        "&travelmode=driving";
+
+    final uri = Uri.parse(url);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      // Se falhar o app, tenta forçar no navegador
+      await launchUrl(uri, mode: LaunchMode.platformDefault);
+    }
+
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Erro ao traçar rota: $e')),
+    );
+  }
   }
 }
