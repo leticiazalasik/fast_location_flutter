@@ -5,6 +5,7 @@ import '../service/address_service.dart';
 
 part 'home_controller.g.dart';
 
+// ignore: library_private_types_in_public_api
 class HomeController = _HomeControllerBase with _$HomeController;
 
 abstract class _HomeControllerBase with Store {
@@ -69,7 +70,6 @@ abstract class _HomeControllerBase with Store {
       cidade: cidade.trim(),
       logradouro: logradouro?.trim(),
     );
-    print(result);
     if (result != null) {
       address = result;
     } else {
