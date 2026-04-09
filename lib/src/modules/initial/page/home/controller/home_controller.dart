@@ -85,7 +85,6 @@ abstract class _HomeControllerBase with Store {
  @action
  Future<void> selectAddress(AddressModel item) async {
   address = item;
-  addressList.clear();
   await _service.saveAddress(item);
  }
 }
