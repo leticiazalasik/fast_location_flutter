@@ -40,6 +40,11 @@ Para testar a função de "Traçar Rota" em um emulador, você deve injetar uma 
 2. Pesquise por uma localização (Ex: Indaial, SC) e clique em **Set Location**.
 
 ### 4. Executar o Aplicativo
+Para executar o projeto, você deve executar o seguinte comando no terminal:
+```bash
+flutter run
+```
+
 No Linux/Fedora, recomenda-se desativar o motor Impeller para evitar instabilidades gráficas no emulador:
 ```bash
 flutter run --no-impeller
