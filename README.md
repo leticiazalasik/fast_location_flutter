@@ -22,17 +22,17 @@ Para garantir a estabilidade do ambiente de desenvolvimento e execução (especi
 ## 📥 Instalação e Configuração
 
 ### 1. Clonar o Repositório
-%codigo%bash
+```bash
 git clone [https://github.com/seu-usuario/fast_location.git](https://github.com/seu-usuario/fast_location.git)
 cd fast_location
-%codigo%
+```
 
 ### 2. Preparar as Dependências e Código Gerado
 Instale os pacotes e execute o `build_runner` para gerar os arquivos necessários para o MobX e Hive:
-%codigo%bash
+```bash
 flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
-%codigo%
+```
 
 ### 3. Configuração do Emulador
 Para testar a função de "Traçar Rota" em um emulador, você deve injetar uma localização manual:
@@ -41,9 +41,9 @@ Para testar a função de "Traçar Rota" em um emulador, você deve injetar uma 
 
 ### 4. Executar o Aplicativo
 No Linux/Fedora, recomenda-se desativar o motor Impeller para evitar instabilidades gráficas no emulador:
-%codigo%bash
+```bash
 flutter run --no-impeller
-%codigo%
+```
 
 ## 🏗️ Estrutura do Projeto
 
