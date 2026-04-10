@@ -4,6 +4,7 @@ import '../../initial/page/home/repositories/local_repository.dart';
 
 part 'history_controller.g.dart';
 
+// ignore: library_private_types_in_public_api
 class HistoryController = _HistoryControllerBase with _$HistoryController;
 
 abstract class _HistoryControllerBase with Store {
